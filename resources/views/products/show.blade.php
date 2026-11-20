@@ -31,26 +31,31 @@
                     </div>
 
                     <div class="d-flex gap-2 mt-4 flex-wrap">
-                        <a href="{{ route('products.edit', $product) }}" class="btn btn-warning px-4 fw-bold">
-                            <i class="bi bi-pencil-square me-1"></i> Edit
-                        </a>
-                        @if ($product->is_active)
-                            <form method="POST" action="{{ route('products.destroy', $product) }}"
-                                  onsubmit="return confirm('Mark this product as unavailable? No records will be deleted.');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger px-4">
-                                    <i class="bi bi-x-circle me-1"></i> Mark Unavailable
-                                </button>
-                            </form>
-                        @else
-                            <form method="POST" action="{{ route('products.restore', $product) }}">
-                                @csrf
-                                <button type="submit" class="btn btn-outline-success px-4">
-                                    <i class="bi bi-arrow-counterclockwise me-1"></i> Restore
-                                </button>
-                            </form>
+                        @if (Auth::user()->isAdmin())
+                            <a href="{{ route('products.edit', $product) }}" class="btn btn-warning px-4 fw-bold">
+                                <i class="bi bi-pencil-square me-1"></i> Edit
+                            </a>
+                            @if ($product->is_active)
+                                <form method="POST" action="{{ route('products.destroy', $product) }}"
+                                      onsubmit="return confirm('Mark this product as unavailable? No records will be deleted.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger px-4">
+                                        <i class="bi bi-x-circle me-1"></i> Mark Unavailable
+                                    </button>
+                                </form>
+                            @else
+                                <form method="POST" action="{{ route('products.restore', $product) }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-success px-4">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Restore
+                                    </button>
+                                </form>
+                            @endif
                         @endif
+                        <a href="{{ route('inventory.index') }}" class="btn btn-outline-warning px-4">
+                            <i class="bi bi-clipboard-data me-1"></i> Stock Overview
+                        </a>
                         <a href="{{ route('products.index') }}" class="btn btn-outline-secondary px-4">Back to Products</a>
                     </div>
                 </div>

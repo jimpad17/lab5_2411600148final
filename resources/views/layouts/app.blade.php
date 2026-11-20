@@ -80,13 +80,21 @@
                             </li>
                         @endif
 
-                        <li class="nav-item">
-                            <a class="nav-link rounded px-3 py-2 {{ request()->routeIs('activity-logs*') ? 'active' : '' }}"
-                               href="{{ route('activity-logs.index') }}">
-                                <i class="bi bi-clock-history me-2"></i> Activity Log
-                            </a>
-                        </li>
+                        @if (Auth::user()->isAdmin())
+                            <li class="nav-item">
+                                <a class="nav-link rounded px-3 py-2 {{ request()->routeIs('activity-logs*') ? 'active' : '' }}"
+                                   href="{{ route('activity-logs.index') }}">
+                                    <i class="bi bi-clock-history me-2"></i> Activity Log
+                                </a>
+                            </li>
+                        @endif
                     </ul>
+
+                    @unless (Auth::user()->isAdmin())
+                        <small class="text-muted px-3 mt-3 d-block" style="font-size: .65rem;">
+                            <i class="bi bi-info-circle me-1"></i> Staff view — inventory operations
+                        </small>
+                    @endunless
                 </div>
             </nav>
 

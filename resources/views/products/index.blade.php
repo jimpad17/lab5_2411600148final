@@ -57,9 +57,11 @@
                     </div>
                 </div>
                 <div class="col-12 d-flex flex-wrap gap-2">
-                    <a href="{{ route('products.create') }}" class="btn btn-success btn-sm px-3">
-                        <i class="bi bi-plus-circle me-1"></i> Add Product
-                    </a>
+                    @if (Auth::user()->isAdmin())
+                        <a href="{{ route('products.create') }}" class="btn btn-success btn-sm px-3">
+                            <i class="bi bi-plus-circle me-1"></i> Add Product
+                        </a>
+                    @endif
                     <a href="{{ route('products.export', request()->only(['brand_id', 'category_id', 'status', 'min_quantity', 'max_quantity', 'search'])) }}"
                        class="btn btn-primary btn-sm px-3">
                         <i class="bi bi-download me-1"></i> Export CSV
@@ -110,25 +112,27 @@
                                     <a href="{{ route('products.show', $product) }}" class="btn btn-sm btn-outline-primary" title="View">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="{{ route('products.edit', $product) }}" class="btn btn-sm btn-outline-warning" title="Edit">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    @if ($product->is_active)
-                                        <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline"
-                                              onsubmit="return confirm('Mark \'{{ addslashes($product->name) }}\' as unavailable? No records will be deleted.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Mark unavailable">
-                                                <i class="bi bi-x-circle"></i>
-                                            </button>
-                                        </form>
-                                    @else
-                                        <form method="POST" action="{{ route('products.restore', $product) }}" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Restore">
-                                                <i class="bi bi-arrow-counterclockwise"></i>
-                                            </button>
-                                        </form>
+                                    @if (Auth::user()->isAdmin())
+                                        <a href="{{ route('products.edit', $product) }}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        @if ($product->is_active)
+                                            <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline"
+                                                  onsubmit="return confirm('Mark \'{{ addslashes($product->name) }}\' as unavailable? No records will be deleted.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Mark unavailable">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <form method="POST" action="{{ route('products.restore', $product) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-success" title="Restore">
+                                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endif
                                 </td>
                             </tr>

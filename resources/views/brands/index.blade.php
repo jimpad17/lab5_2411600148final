@@ -27,9 +27,11 @@
                     <a href="{{ route('brands.index') }}" class="btn btn-outline-secondary btn-sm px-3">Clear</a>
                 </div>
                 <div class="col-md-5 text-md-end">
-                    <a href="{{ route('brands.create') }}" class="btn btn-success btn-sm px-3">
-                        <i class="bi bi-plus-circle me-1"></i> Add Brand
-                    </a>
+                    @if (Auth::user()->isAdmin())
+                        <a href="{{ route('brands.create') }}" class="btn btn-success btn-sm px-3">
+                            <i class="bi bi-plus-circle me-1"></i> Add Brand
+                        </a>
+                    @endif
                 </div>
             </form>
         </div>
@@ -69,25 +71,29 @@
                                 </td>
                                 <td><small>{{ $brand->created_at->format('M d, Y') }}</small></td>
                                 <td class="text-end pe-4 text-nowrap">
-                                    <a href="{{ route('brands.edit', $brand) }}" class="btn btn-sm btn-outline-warning" title="Edit">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    @if ($brand->is_active)
-                                        <form method="POST" action="{{ route('brands.destroy', $brand) }}" class="d-inline"
-                                              onsubmit="return confirm('Set \'{{ addslashes($brand->name) }}\' to inactive? Its products will be kept.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate">
-                                                <i class="bi bi-x-circle"></i>
-                                            </button>
-                                        </form>
+                                    @if (Auth::user()->isAdmin())
+                                        <a href="{{ route('brands.edit', $brand) }}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        @if ($brand->is_active)
+                                            <form method="POST" action="{{ route('brands.destroy', $brand) }}" class="d-inline"
+                                                  onsubmit="return confirm('Set \'{{ addslashes($brand->name) }}\' to inactive? Its products will be kept.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <form method="POST" action="{{ route('brands.restore', $brand) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-success" title="Restore">
+                                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     @else
-                                        <form method="POST" action="{{ route('brands.restore', $brand) }}" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Restore">
-                                                <i class="bi bi-arrow-counterclockwise"></i>
-                                            </button>
-                                        </form>
+                                        <span class="text-muted small">View only</span>
                                     @endif
                                 </td>
                             </tr>

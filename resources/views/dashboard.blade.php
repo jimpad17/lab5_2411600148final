@@ -7,9 +7,11 @@
 @endsection
 
 @section('actions')
-    <a href="{{ route('reports.index') }}" class="btn btn-outline-warning btn-sm px-3">
-        <i class="bi bi-bar-chart-line me-1"></i> Reports
-    </a>
+    @if (Auth::user()->isAdmin())
+        <a href="{{ route('reports.index') }}" class="btn btn-outline-warning btn-sm px-3">
+            <i class="bi bi-bar-chart-line me-1"></i> Reports
+        </a>
+    @endif
 @endsection
 
 @section('content')
@@ -173,7 +175,9 @@
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white pt-3 border-bottom-0 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold"><i class="bi bi-activity text-primary me-2"></i>Recent Activity</h5>
-                    <a href="{{ route('activity-logs.index') }}" class="small text-decoration-none fw-semibold">View all</a>
+                    @if (Auth::user()->isAdmin())
+                        <a href="{{ route('activity-logs.index') }}" class="small text-decoration-none fw-semibold">View all</a>
+                    @endif
                 </div>
                 <div class="card-body">
                     @forelse ($recentActivity as $log)

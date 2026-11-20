@@ -96,6 +96,44 @@ class InventoryTest extends TestCase
         $this->actingAs($staff)->get(route('users.index'))->assertForbidden();
     }
 
+    public function test_staff_can_view_and_post_stock_movements_but_cannot_change_master_data(): void
+    {
+        $staff = User::factory()->create(['role' => 'staff']);
+        $product = $this->product();
+
+        $this->actingAs($staff)->get(route('dashboard'))->assertOk();
+        $this->actingAs($staff)->get(route('inventory.index'))->assertOk();
+        $this->actingAs($staff)->get(route('products.index'))->assertOk();
+        $this->actingAs($staff)->get(route('products.show', $product))->assertOk();
+        $this->actingAs($staff)->get(route('brands.index'))->assertOk();
+        $this->actingAs($staff)->get(route('categories.index'))->assertOk();
+
+        $this->actingAs($staff)->get(route('products.create'))->assertForbidden();
+        $this->actingAs($staff)->get(route('products.edit', $product))->assertForbidden();
+        $this->actingAs($staff)->delete(route('products.destroy', $product))->assertForbidden();
+        $this->actingAs($staff)->get(route('brands.create'))->assertForbidden();
+        $this->actingAs($staff)->get(route('categories.create'))->assertForbidden();
+    }
+
+    public function test_staff_cannot_open_admin_only_reports_and_activity_log(): void
+    {
+        $staff = User::factory()->create(['role' => 'staff']);
+
+        $this->actingAs($staff)->get(route('reports.index'))->assertForbidden();
+        $this->actingAs($staff)->get(route('reports.export'))->assertForbidden();
+        $this->actingAs($staff)->get(route('activity-logs.index'))->assertForbidden();
+    }
+
+    public function test_admin_can_open_every_module(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        foreach (['dashboard', 'inventory.index', 'products.index', 'brands.index',
+                  'categories.index', 'users.index', 'reports.index', 'activity-logs.index'] as $route) {
+            $this->actingAs($admin)->get(route($route))->assertOk();
+        }
+    }
+
     public function test_random_or_broken_url_returns_to_the_last_real_page(): void
     {
         $user = User::factory()->create();

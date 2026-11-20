@@ -50,7 +50,24 @@ for the expanded system (Brands, Categories, Users, Inventory and Activity Log).
 `ADMIN` is mapped to `admin@jimtrack.local` in `app/Http/Requests/Auth/LoginRequest.php`,
 so the Lab 4 credentials still work. Normal email logins work too. The login screen has
 only username/password, a **Login** button and a **Create account** link (no Remember me,
-no Forgot password, no subtitle or lightning icon).
+no Forgot password, no subtitle or lightning icon). Both the admin and a staff example
+are printed at the bottom of the login card.
+
+## Roles
+
+| Area | Admin | Staff |
+|------|:-----:|:-----:|
+| Dashboard, charts, KPIs | ✅ | ✅ |
+| Inventory overview + Stock In / Stock Out | ✅ | ✅ |
+| Products / Brands / Categories — view, search, CSV export | ✅ | ✅ |
+| Add / edit / deactivate / restore master data | ✅ | ❌ |
+| Users management | ✅ | ❌ |
+| Reports (valuation + CSV) | ✅ | ❌ |
+| Activity Log | ✅ | ❌ |
+
+Staff accounts are created by **Create account** with the `staff` role by default.
+Admin-only screens are protected by the `admin` middleware in `routes/web.php` (403 on
+direct access) and their buttons/links are hidden in the Blade views.
 
 ## Broken / random URLs
 
@@ -108,5 +125,5 @@ The row, its stock history and its audit entries remain in MySQL.
 php artisan test
 ```
 
-26 tests pass, including checks for soft deactivation/restore, stock movements,
-activity logging, staff access control and broken-URL fallback.
+29 tests pass, including checks for soft deactivation/restore, stock movements,
+activity logging, admin/staff access control and broken-URL fallback.

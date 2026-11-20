@@ -24,25 +24,50 @@ Route::get('/', function () {
 Route::middleware(['auth', EnsureUserIsActive::class, LogActivity::class])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Inventory overview + quick stock movements
+    /*
+     * Shared by BOTH roles. Staff handle the day-to-day work: read the
+     * catalog, check stock levels and post Stock In / Stock Out movements.
+     */
     Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('inventory/{product}/stock', [InventoryController::class, 'stock'])->name('inventory.stock');
 
-    // Products: destroy = deactivate; restore brings records back
+    Route::get('products', [ProductController::class, 'index'])->name('products.index');
     Route::get('products/export/csv', [ProductController::class, 'exportCsv'])->name('products.export');
-    Route::get('products/{product}/restore', [ProductController::class, 'restore'])->name('products.restore');
-    Route::resource('products', ProductController::class);
+    Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show')->whereNumber('product');
 
-    // Brands
-    Route::get('brands/{brand}/restore', [BrandController::class, 'restore'])->name('brands.restore');
-    Route::resource('brands', BrandController::class)->except(['show']);
+    Route::get('brands', [BrandController::class, 'index'])->name('brands.index');
+    Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
 
-    // Categories
-    Route::get('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
-    Route::resource('categories', CategoryController::class)->except(['show']);
-
-    // Users (admin only)
+    /*
+     * Admin-only: master-data changes, people, money valuation and the
+     * audit trail. The `admin` middleware aborts with 403 for staff.
+     */
     Route::middleware('admin')->group(function () {
+        // Products - destroy = deactivate; restore brings records back
+        Route::get('products/create', [ProductController::class, 'create'])->name('products.create');
+        Route::post('products', [ProductController::class, 'store'])->name('products.store');
+        Route::get('products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+        Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+        Route::get('products/{product}/restore', [ProductController::class, 'restore'])->name('products.restore');
+
+        // Brands
+        Route::get('brands/create', [BrandController::class, 'create'])->name('brands.create');
+        Route::post('brands', [BrandController::class, 'store'])->name('brands.store');
+        Route::get('brands/{brand}/edit', [BrandController::class, 'edit'])->name('brands.edit');
+        Route::put('brands/{brand}', [BrandController::class, 'update'])->name('brands.update');
+        Route::delete('brands/{brand}', [BrandController::class, 'destroy'])->name('brands.destroy');
+        Route::get('brands/{brand}/restore', [BrandController::class, 'restore'])->name('brands.restore');
+
+        // Categories
+        Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');
+        Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
+        Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+        Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+        Route::get('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+
+        // Users
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/create', [UserController::class, 'create'])->name('users.create');
         Route::post('users', [UserController::class, 'store'])->name('users.store');
@@ -50,15 +75,14 @@ Route::middleware(['auth', EnsureUserIsActive::class, LogActivity::class])->grou
         Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+        // Audit trail
+        Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
+
+        // Reports (reached from the dashboard top-right button, not the sidebar)
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/export/csv', [ReportController::class, 'exportCsv'])->name('reports.export');
     });
-
-    // Audit trail
-    Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
-
-    // Reports (reached from the dashboard top-right button, not the sidebar)
-    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('reports/export/csv', [ReportController::class, 'exportCsv'])->name('reports.export');
-
 });
 
 require __DIR__.'/auth.php';
