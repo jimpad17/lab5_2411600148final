@@ -50,6 +50,18 @@ for the expanded system (Brands, Categories, Users, Inventory and Activity Log).
 `ADMIN` is mapped to `admin@jimtrack.local` in `app/Http/Requests/Auth/LoginRequest.php`,
 so the Lab 4 credentials still work. Normal email logins work too.
 
+## Broken / random URLs
+
+Any unmatched URL (for example `http://127.0.0.1:8000/products//////.......//////`
+or `http://127.0.0.1:8000//////.......//////`) automatically redirects back to the
+last real page you opened. The last page is stored in the session by
+`app/Http/Middleware/LogActivity.php`; the catch-all is the named `fallback` route at
+the bottom of `routes/web.php`. Guests are sent to `/login` instead.
+
+`server.php` is included so `php artisan serve` also forwards repeated-slash and
+dot-only URLs to Laravel (PHP's built-in server otherwise answers 404 before the
+app sees them).
+
 ## Important behaviour: nothing is deleted
 
 Deleting a **product, brand, category or user account** only sets `is_active = false`.

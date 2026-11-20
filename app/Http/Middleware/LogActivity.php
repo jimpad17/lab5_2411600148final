@@ -18,11 +18,19 @@ class LogActivity
     {
         $response = $next($request);
 
+        // Remember the last real page so the fallback route can bring the user
+        // back here after typing a random / broken URL. Only valid GET module
+        // pages are stored - never the fallback itself, otherwise it loops.
+        if ($request->isMethod('get')
+            && ! $request->routeIs('login', 'register', 'password.*', 'verification.*', 'fallback')) {
+            $request->session()->put('last_page_url', $request->getRequestUri());
+        }
+
         if (! Auth::check() || ! $request->isMethod('get')) {
             return $response;
         }
 
-        if ($request->routeIs('login', 'register', 'password.*', 'verification.*')) {
+        if ($request->routeIs('login', 'register', 'password.*', 'verification.*', 'fallback')) {
             return $response;
         }
 

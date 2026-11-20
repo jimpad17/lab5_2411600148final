@@ -12,6 +12,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\LogActivity;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 Route::get('/', function () {
     return redirect(auth()->check() ? route('dashboard') : route('login'));
@@ -66,3 +67,19 @@ Route::middleware(['auth', EnsureUserIsActive::class, LogActivity::class])->grou
 });
 
 require __DIR__.'/auth.php';
+
+/*
+ * Any unmatched URL - including random slash/dot combos like
+ * /products//////.......////// - returns to the last real page the user
+ * opened. The target is stored by LogActivity as a request URI, so it is
+ * always local and cannot be poisoned into an external redirect.
+ */
+Route::fallback(function () {
+    $target = session('last_page_url');
+
+    if (is_string($target) && Str::startsWith($target, '/') && ! Str::startsWith($target, '//')) {
+        return redirect()->to($target);
+    }
+
+    return redirect(auth()->check() ? route('dashboard') : route('login'));
+})->name('fallback');

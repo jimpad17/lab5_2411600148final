@@ -95,4 +95,22 @@ class InventoryTest extends TestCase
 
         $this->actingAs($staff)->get(route('users.index'))->assertForbidden();
     }
+
+    public function test_random_or_broken_url_returns_to_the_last_real_page(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get(route('products.index'))->assertOk();
+        $this->actingAs($user)->get('/products//////.......//////')
+            ->assertRedirect(route('products.index'));
+
+        // Repeated broken URLs must not overwrite the stored page.
+        $this->actingAs($user)->get('//////.......//////')
+            ->assertRedirect(route('products.index'));
+    }
+
+    public function test_random_url_for_a_guest_returns_to_login(): void
+    {
+        $this->get('//////.......//////')->assertRedirect(route('login'));
+    }
 }
