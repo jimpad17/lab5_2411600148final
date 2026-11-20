@@ -1,0 +1,178 @@
+/* =========================================================
+   JIMTRACK FITNESS - INVENTORY MANAGEMENT SYSTEM
+   Color scheme carried over from Laboratory Exercise 4
+   (PulseTrack dark charcoal / orange / gold palette)
+   ========================================================= */
+:root {
+    --bg-main: #f3f4f6;
+    --navbar-bg: #212529;
+    --sidebar-bg: #ffffff;
+    --brand-orange: #fd7e14;
+    --brand-orange-dark: #e06b0d;
+    --brand-yellow: #ffc107;
+    --metric-blue: #0d6efd;
+    --metric-green: #198754;
+    --metric-red: #dc3545;
+    --member-id-color: #d63384;
+    --badge-slate: #6c757d;
+    --border-color: #e5e7eb;
+}
+
+body {
+    background-color: var(--bg-main);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #212529;
+}
+
+/* ---------- Login / guest pages ---------- */
+body.login-page {
+    background-color: var(--bg-main);
+}
+
+.login-card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.bg-dark-navbar {
+    background-color: var(--navbar-bg) !important;
+}
+
+.text-muted-gold {
+    color: #e0a800;
+}
+
+.text-warning-dark {
+    color: #d39e00;
+}
+
+.btn-login-orange {
+    background-color: var(--brand-orange);
+    border: none;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.btn-login-orange:hover,
+.btn-login-orange:focus {
+    background-color: var(--brand-orange-dark);
+    color: #fff;
+}
+
+/* ---------- Navbar & sidebar ---------- */
+.navbar {
+    background-color: var(--navbar-bg) !important;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.sidebar {
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    min-height: calc(100vh - 56px);
+}
+
+.sidebar .nav-link {
+    color: #4b5563;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+
+.sidebar .nav-link:hover {
+    color: var(--brand-orange);
+}
+
+.sidebar .nav-link.active {
+    color: var(--brand-orange) !important;
+    background-color: transparent !important;
+    font-weight: 700;
+}
+
+/* ---------- Cards & KPI stats ---------- */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card {
+    background-color: #ffffff;
+}
+
+.stat-card .card-title {
+    font-size: 0.78rem;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+}
+
+/* ---------- Tables & badges ---------- */
+.sku-tag {
+    color: var(--member-id-color);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.badge-category {
+    background-color: var(--metric-blue);
+    color: #fff;
+    font-weight: 500;
+}
+
+.badge-in {
+    background-color: var(--metric-green);
+    color: #fff;
+}
+
+.badge-low {
+    background-color: var(--brand-yellow);
+    color: #000;
+}
+
+.badge-out {
+    background-color: var(--metric-red);
+    color: #fff;
+}
+
+/* ---------- Forms & buttons ---------- */
+.form-control,
+.form-select {
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background-color: var(--metric-blue);
+    border-color: var(--metric-blue);
+}
+
+.btn-success {
+    background-color: var(--metric-green);
+    border-color: var(--metric-green);
+}
+
+.chart-box {
+    position: relative;
+    height: 230px;
+}
+
+/* ---------- Alerts ---------- */
+.alert-success {
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+    color: #0f5132;
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 767.98px) {
+    .sidebar {
+        min-height: auto;
+    }
+
+    .chart-box {
+        height: 200px;
+    }
+}
