@@ -65,6 +65,7 @@ class LogActivity
             'categories' => 'Categories',
             'users' => 'Users',
             'activity-logs' => 'Activity Log',
+            'reports' => 'Reports',
         ];
 
         return $modules[$prefix] ?? null;

@@ -1,0 +1,86 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\InventoryTransaction;
+use App\Models\Product;
+
+class ReportController extends Controller
+{
+    public function index()
+    {
+        $categories = Product::active()
+            ->join('categories', 'categories.id', '=', 'products.category_id')
+            ->selectRaw('categories.name as category, COUNT(products.id) as items, SUM(products.quantity) as units, SUM(products.quantity * products.unit_price) as value')
+            ->groupBy('categories.id', 'categories.name')
+            ->orderBy('categories.name')
+            ->get();
+
+        $brands = Product::active()
+            ->join('brands', 'brands.id', '=', 'products.brand_id')
+            ->selectRaw('brands.name as brand, COUNT(products.id) as items, SUM(products.quantity) as units, SUM(products.quantity * products.unit_price) as value')
+            ->groupBy('brands.id', 'brands.name')
+            ->orderBy('brands.name')
+            ->get();
+
+        $totalValue = (float) Product::active()
+            ->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as total')
+            ->value('total');
+        $totalItems = (int) Product::active()->count();
+
+        $lowStockProducts = Product::active()
+            ->whereColumn('quantity', '<=', 'reorder_level')
+            ->orderBy('quantity')->get();
+
+        $inactiveProducts = Product::inactive()->with(['brand', 'category'])->orderBy('name')->get();
+
+        $transactionCounts = InventoryTransaction::selectRaw('type, COUNT(*) as total')
+            ->groupBy('type')
+            ->pluck('total', 'type');
+
+        $recentTransactions = InventoryTransaction::with(['product', 'user'])
+            ->latest()->take(10)->get();
+
+        return view('reports.index', compact(
+            'categories',
+            'brands',
+            'totalValue',
+            'totalItems',
+            'lowStockProducts',
+            'inactiveProducts',
+            'transactionCounts',
+            'recentTransactions'
+        ));
+    }
+
+    public function exportCsv()
+    {
+        $categories = Product::active()
+            ->join('categories', 'categories.id', '=', 'products.category_id')
+            ->selectRaw('categories.name as category, COUNT(products.id) as items, SUM(products.quantity) as units, SUM(products.quantity * products.unit_price) as value')
+            ->groupBy('categories.id', 'categories.name')
+            ->orderBy('categories.name')
+            ->get();
+
+        $filename = 'jimtrack-inventory-report-'.now()->format('Y-m-d').'.csv';
+
+        return response()->stream(function () use ($categories) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Category', 'Products', 'Units On Hand', 'Inventory Value']);
+
+            foreach ($categories as $row) {
+                fputcsv($handle, [
+                    $row->category,
+                    $row->items,
+                    $row->units,
+                    number_format((float) $row->value, 2, '.', ''),
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+}

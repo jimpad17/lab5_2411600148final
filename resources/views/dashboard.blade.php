@@ -6,6 +6,12 @@
     {{ $greeting }}, <span class="text-warning fw-bold">{{ Auth::user()->name }}</span>!
 @endsection
 
+@section('actions')
+    <a href="{{ route('reports.index') }}" class="btn btn-outline-warning btn-sm px-3">
+        <i class="bi bi-bar-chart-line me-1"></i> Reports
+    </a>
+@endsection
+
 @section('content')
     <!-- KPI cards: real MySQL values (replaces Lab 4 localStorage values) -->
     <div class="row mb-4">

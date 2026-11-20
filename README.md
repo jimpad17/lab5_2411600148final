@@ -86,9 +86,10 @@ The row, its stock history and its audit entries remain in MySQL.
 | Inventory overview + Stock In / Stock Out | `app/Http/Controllers/InventoryController.php` |
 | Resource controllers with CRUD, validation and sanitization | `app/Http/Controllers/*Controller.php` |
 | Dashboard with real statistics and Chart.js charts | `app/Http/Controllers/DashboardController.php`, `resources/views/dashboard.blade.php` |
+| Reports (valuation by category/brand, reorder list, CSV) — opened from the dashboard top-right button | `app/Http/Controllers/ReportController.php`, `resources/views/reports/index.blade.php` |
 | Blade layouts and screens for every module | `resources/views/**` |
 | Seeders: 4 users, 7 brands, 6 categories, 21 products (19 active + 2 inactive), stock movements, sample activity | `database/seeders/*` |
-| CSV export | `ProductController@exportCsv` |
+| CSV exports | `ProductController@exportCsv`, `ReportController@exportCsv` |
 | Lab 4 palette and UI patterns | `public/css/jimtrack.css` |
 
 ## Main routes
@@ -99,6 +100,7 @@ The row, its stock history and its audit entries remain in MySQL.
 - `/brands`, `/categories` — lookup table management with deactivate/restore
 - `/users` — admin-only account management with roles and deactivate/restore
 - `/activity-logs` — filterable audit trail
+- `/reports` — valuation by category/brand, reorder list, stock movement log and CSV download (opened from the dashboard top-right **Reports** button; no sidebar link)
 
 ## Tests
 

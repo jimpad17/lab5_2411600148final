@@ -100,6 +100,9 @@
                             Welcome, <span class="text-warning fw-bold">{{ Auth::user()->name }}</span>!
                         @endif
                     </h2>
+                    @hasSection('actions')
+                        <div class="ms-auto pt-2 pt-sm-0">@yield('actions')</div>
+                    @endif
                 </div>
 
                 @if (session('success'))
