@@ -136,6 +136,28 @@ body.login-page {
     color: #fff;
 }
 
+.badge-inactive {
+    background-color: var(--badge-slate) !important;
+    color: #fff !important;
+}
+
+.role-badge {
+    background-color: rgba(253, 126, 20, 0.2);
+    color: var(--brand-yellow);
+    font-size: .65rem;
+    letter-spacing: .5px;
+}
+
+.table-inactive {
+    opacity: .72;
+}
+
+.action-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+}
+
 /* ---------- Forms & buttons ---------- */
 .form-control,
 .form-select {

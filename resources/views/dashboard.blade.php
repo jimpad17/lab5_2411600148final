@@ -41,7 +41,7 @@
                 <div class="card-body py-2">
                     <h6 class="card-title text-uppercase fw-bold mb-2">Inventory Value</h6>
                     <h2 class="fw-bold text-success mb-0">₱{{ number_format($inventoryValue, 2) }}</h2>
-                    <small class="text-muted">Sum of quantity × price</small>
+                    <small class="text-muted">{{ $activeBrands }} brands · {{ $activeCategories }} categories</small>
                 </div>
             </div>
         </div>
@@ -80,14 +80,15 @@
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0 small">
                             <thead class="table-light">
-                                <tr><th class="ps-3">SKU</th><th>Product</th><th>Category</th><th>Qty</th><th>Status</th></tr>
+                                <tr><th class="ps-3">SKU</th><th>Product</th><th>Brand</th><th>Category</th><th>Qty</th><th>Status</th></tr>
                             </thead>
                             <tbody>
                                 @forelse ($recentProducts as $item)
                                     <tr>
                                         <td class="ps-3"><code class="sku-tag">{{ $item->sku }}</code></td>
                                         <td><strong>{{ $item->name }}</strong></td>
-                                        <td><span class="badge badge-category">{{ $item->category }}</span></td>
+                                        <td><small>{{ $item->brand?->name ?? '—' }}</small></td>
+                                        <td><span class="badge badge-category">{{ $item->category?->name ?? '—' }}</span></td>
                                         <td>{{ $item->quantity }}</td>
                                         <td>
                                             <span class="badge badge-{{ $item->quantity == 0 ? 'out' : ($item->isLowStock() ? 'low' : 'in') }}">
@@ -96,7 +97,7 @@
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="5" class="text-center py-4 text-muted">No products yet.</td></tr>
+                                    <tr><td colspan="6" class="text-center py-4 text-muted">No products yet.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -122,36 +123,66 @@
                     @empty
                         <p class="text-muted small mb-0">All products are above reorder level. Nice!</p>
                     @endforelse
+                    <a href="{{ route('inventory.index') }}" class="small text-decoration-none fw-semibold d-block mt-3">
+                        Open stock overview →
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-white pt-3 border-bottom-0">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-arrow-left-right text-success me-2"></i>Recent Stock Movements</h5>
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white pt-3 border-bottom-0">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-arrow-left-right text-success me-2"></i>Recent Stock Movements</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr><th class="ps-3">Product</th><th>Type</th><th>Quantity</th><th>Reference</th><th>User</th><th>Date</th></tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($recentTransactions as $transaction)
+                                    <tr>
+                                        <td class="ps-3">{{ $transaction->product?->name ?? 'Deleted product' }}</td>
+                                        <td><span class="badge bg-secondary">{{ $transaction->type_label }}</span></td>
+                                        <td>{{ $transaction->quantity }}</td>
+                                        <td><code>{{ $transaction->reference ?? '—' }}</code></td>
+                                        <td>{{ $transaction->user?->name ?? 'System' }}</td>
+                                        <td>{{ $transaction->created_at->format('M d, Y h:i A') }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="6" class="text-center py-4 text-muted">No stock movements recorded.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 small">
-                    <thead class="table-light">
-                        <tr><th class="ps-3">Product</th><th>Type</th><th>Quantity</th><th>Reference</th><th>User</th><th>Date</th></tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($recentTransactions as $transaction)
-                            <tr>
-                                <td class="ps-3">{{ $transaction->product?->name ?? 'Deleted product' }}</td>
-                                <td><span class="badge bg-secondary">{{ $transaction->type_label }}</span></td>
-                                <td>{{ $transaction->quantity }}</td>
-                                <td><code>{{ $transaction->reference ?? '—' }}</code></td>
-                                <td>{{ $transaction->user?->name ?? 'System' }}</td>
-                                <td>{{ $transaction->created_at->format('M d, Y h:i A') }}</td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="6" class="text-center py-4 text-muted">No stock movements recorded.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+
+        <div class="col-lg-4 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white pt-3 border-bottom-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-activity text-primary me-2"></i>Recent Activity</h5>
+                    <a href="{{ route('activity-logs.index') }}" class="small text-decoration-none fw-semibold">View all</a>
+                </div>
+                <div class="card-body">
+                    @forelse ($recentActivity as $log)
+                        <div class="border-bottom py-2 small">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">{{ $log->user?->name ?? 'System' }}</span>
+                                <span class="badge bg-light text-dark">{{ $log->module }}</span>
+                            </div>
+                            <div class="text-muted">{{ $log->description }}</div>
+                            <small class="text-muted">{{ $log->created_at->diffForHumans() }}</small>
+                        </div>
+                    @empty
+                        <p class="text-muted small mb-0">No activity recorded yet.</p>
+                    @endforelse
+                </div>
             </div>
         </div>
     </div>

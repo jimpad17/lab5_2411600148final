@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
@@ -17,18 +18,31 @@ class Product extends Model
         'name',
         'sku',
         'description',
-        'category',
+        'brand_id',
+        'category_id',
         'quantity',
         'reorder_level',
         'unit_price',
         'supplier',
+        'is_active',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'reorder_level' => 'integer',
         'unit_price' => 'decimal:2',
+        'is_active' => 'boolean',
     ];
+
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     /**
      * One product has many stock movement records.
@@ -38,15 +52,73 @@ class Product extends Model
         return $this->hasMany(InventoryTransaction::class)->latest();
     }
 
+    public function scopeActive($query)
+    {
+        // Qualified so the scope also works when joined with brands/categories.
+        return $query->where('products.is_active', true);
+    }
+
+    public function scopeInactive($query)
+    {
+        return $query->where('products.is_active', false);
+    }
+
     public function scopeLowStock($query)
     {
-        return $query->where('quantity', '>', 0)
+        return $query->active()
+            ->where('quantity', '>', 0)
             ->whereColumn('quantity', '<=', 'reorder_level');
     }
 
     public function scopeOutOfStock($query)
     {
-        return $query->where('quantity', 0);
+        return $query->active()->where('quantity', 0);
+    }
+
+    /**
+     * Shared search/filter logic for Products, Inventory and CSV exports.
+     */
+    public function scopeApplyFilters($query, array $filters)
+    {
+        if (! empty($filters['brand_id'])) {
+            $query->where('brand_id', $filters['brand_id']);
+        }
+
+        if (! empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        if (! empty($filters['status'])) {
+            match ($filters['status']) {
+                'active' => $query->active(),
+                'inactive' => $query->inactive(),
+                'low' => $query->lowStock(),
+                'out' => $query->outOfStock(),
+                'in' => $query->active()->whereColumn('quantity', '>', 'reorder_level'),
+                default => null,
+            };
+        }
+
+        if (isset($filters['min_quantity']) && $filters['min_quantity'] !== '') {
+            $query->where('quantity', '>=', (int) $filters['min_quantity']);
+        }
+
+        if (isset($filters['max_quantity']) && $filters['max_quantity'] !== '') {
+            $query->where('quantity', '<=', (int) $filters['max_quantity']);
+        }
+
+        if (! empty($filters['search'])) {
+            $term = '%'.strip_tags((string) $filters['search']).'%';
+
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', $term)
+                    ->orWhere('sku', 'like', $term)
+                    ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', $term))
+                    ->orWhere('supplier', 'like', $term);
+            });
+        }
+
+        return $query->orderBy('id');
     }
 
     /**
@@ -59,6 +131,10 @@ class Product extends Model
 
     public function getStockStatusAttribute(): string
     {
+        if (! $this->is_active) {
+            return 'Inactive';
+        }
+
         if ((int) $this->quantity === 0) {
             return 'Out of Stock';
         }
@@ -71,11 +147,8 @@ class Product extends Model
         return (float) $this->quantity * (float) $this->unit_price;
     }
 
-    /**
-     * Gym inventory categories - continuation of the Lab 4 JimTrack Fitness theme.
-     */
-    public static function categories(): array
+    public static function statusOptions(): array
     {
-        return ['Equipment', 'Supplements', 'Apparel', 'Accessories', 'Nutrition', 'Recovery'];
+        return ['in', 'low', 'out', 'active', 'inactive'];
     }
 }

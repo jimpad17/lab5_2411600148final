@@ -22,6 +22,17 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'is_active',
+    ];
+
+    /**
+     * Defaults also live on the model so factory-made / in-memory users are
+     * active instead of relying only on the database column default.
+     */
+    protected $attributes = [
+        'role' => 'staff',
+        'is_active' => true,
     ];
 
     /**
@@ -44,6 +55,22 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin' && $this->is_active;
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(ActivityLog::class);
     }
 }

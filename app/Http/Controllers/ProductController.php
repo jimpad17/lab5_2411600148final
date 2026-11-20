@@ -4,64 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\InventoryTransaction;
 use App\Models\Product;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
     /**
-     * Shared search / filter logic used by the index page and the CSV export.
+     * Shared search / filter logic (also used by the CSV export).
      */
-    private function filteredProducts(Request $request)
+    private function filtered(Request $request)
     {
-        $query = Product::query();
-
-        if ($request->filled('category')) {
-            $query->where('category', $request->input('category'));
-        }
-
-        if ($request->filled('status')) {
-            match ($request->input('status')) {
-                'low' => $query->lowStock(),
-                'out' => $query->outOfStock(),
-                'in' => $query->whereColumn('quantity', '>', 'reorder_level'),
-                default => null,
-            };
-        }
-
-        if ($request->filled('min_quantity')) {
-            $query->where('quantity', '>=', (int) $request->input('min_quantity'));
-        }
-
-        if ($request->filled('max_quantity')) {
-            $query->where('quantity', '<=', (int) $request->input('max_quantity'));
-        }
-
-        if ($request->filled('search')) {
-            $term = '%'.strip_tags((string) $request->input('search')).'%';
-
-            $query->where(function ($q) use ($term) {
-                $q->where('name', 'like', $term)
-                    ->orWhere('sku', 'like', $term)
-                    ->orWhere('supplier', 'like', $term);
-            });
-        }
-
-        return $query->orderBy('id');
+        return Product::applyFilters($request->all());
     }
 
     private function rules(?Product $product = null): array
     {
-        $uniqueSku = 'unique:products,sku';
+        $uniqueSku = Rule::unique('products', 'sku');
         if ($product) {
-            $uniqueSku .= ','.$product->id;
+            $uniqueSku->ignore($product->id);
         }
 
         return [
             'name' => ['required', 'string', 'max:150'],
             'sku' => ['required', 'string', 'max:50', $uniqueSku],
             'description' => ['nullable', 'string', 'max:1000'],
-            'category' => ['required', 'string', Rule::in(Product::categories())],
+            'brand_id' => ['required', 'integer', Rule::exists('brands', 'id')],
+            'category_id' => ['required', 'integer', Rule::exists('categories', 'id')],
             'quantity' => ['required', 'integer', 'min:0', 'max:1000000'],
             'reorder_level' => ['required', 'integer', 'min:0', 'max:1000000'],
             'unit_price' => ['required', 'numeric', 'min:0.01', 'max:999999.99'],
@@ -75,7 +44,8 @@ class ProductController extends Controller
             'name.required' => 'Product name is required.',
             'sku.required' => 'SKU is required.',
             'sku.unique' => 'This SKU is already used by another product.',
-            'category.required' => 'Please choose a category.',
+            'brand_id.required' => 'Please choose a brand.',
+            'category_id.required' => 'Please choose a category.',
             'quantity.min' => 'Quantity cannot be negative.',
             'reorder_level.min' => 'Reorder level cannot be negative.',
             'unit_price.min' => 'Unit price must be at least 0.01.',
@@ -97,24 +67,27 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $products = $this->filteredProducts($request)->paginate(10)->withQueryString();
-        $categories = Product::categories();
-        $filters = $request->only(['category', 'status', 'min_quantity', 'max_quantity', 'search']);
-
-        return view('products.index', compact('products', 'categories', 'filters'));
+        return view('products.index', [
+            'products' => $this->filtered($request)->with(['brand', 'category'])->paginate(10)->withQueryString(),
+            'brands' => \App\Models\Brand::orderBy('name')->get(),
+            'categories' => \App\Models\Category::orderBy('name')->get(),
+            'filters' => $request->only(['brand_id', 'category_id', 'status', 'min_quantity', 'max_quantity', 'search']),
+        ]);
     }
 
     public function create()
     {
         return view('products.create', [
             'product' => new Product(),
-            'categories' => Product::categories(),
+            'brands' => \App\Models\Brand::active()->orderBy('name')->get(),
+            'categories' => \App\Models\Category::active()->orderBy('name')->get(),
         ]);
     }
 
     public function store(Request $request)
     {
         $data = $this->sanitized($request->validate($this->rules(), $this->messages()));
+        $data['is_active'] = $request->boolean('is_active', true);
 
         $product = Product::create($data);
 
@@ -126,28 +99,32 @@ class ProductController extends Controller
             'user_id' => auth()->id(),
         ]);
 
+        ActivityLogger::log('created', 'Products', "Created product '{$product->name}' ({$product->sku}).");
+
         return redirect()->route('products.index')
             ->with('success', "Product '{$product->name}' was added to the inventory.");
     }
 
     public function show(Product $product)
     {
-        $product->load('transactions.user');
-
-        return view('products.show', compact('product'));
+        return view('products.show', [
+            'product' => $product->load(['brand', 'category', 'transactions.user']),
+        ]);
     }
 
     public function edit(Product $product)
     {
         return view('products.edit', [
             'product' => $product,
-            'categories' => Product::categories(),
+            'brands' => \App\Models\Brand::orderBy('name')->get(),
+            'categories' => \App\Models\Category::orderBy('name')->get(),
         ]);
     }
 
     public function update(Request $request, Product $product)
     {
         $data = $this->sanitized($request->validate($this->rules($product), $this->messages()));
+        $data['is_active'] = $request->boolean('is_active');
         $oldQuantity = (int) $product->quantity;
 
         $product->update($data);
@@ -162,25 +139,42 @@ class ProductController extends Controller
             ]);
         }
 
+        ActivityLogger::log('updated', 'Products', "Updated product '{$product->name}'.");
+
         return redirect()->route('products.index')
             ->with('success', "Product '{$product->name}' was updated successfully.");
     }
 
+    /**
+     * Products are NEVER deleted. Deactivating keeps the record and its history
+     * intact while removing it from active inventory lists.
+     */
     public function destroy(Product $product)
     {
-        $name = $product->name;
-        $product->delete();
+        $product->update(['is_active' => false]);
+
+        ActivityLogger::log('deactivated', 'Products', "Marked product '{$product->name}' as unavailable (inactive).");
 
         return redirect()->route('products.index')
-            ->with('success', "Product '{$name}' was deleted from the inventory.");
+            ->with('success', "Product '{$product->name}' is now unavailable (inactive). No records were deleted.");
+    }
+
+    public function restore(Product $product)
+    {
+        $product->update(['is_active' => true]);
+
+        ActivityLogger::log('restored', 'Products', "Restored product '{$product->name}' to active inventory.");
+
+        return redirect()->route('products.index')
+            ->with('success', "Product '{$product->name}' was restored to active inventory.");
     }
 
     /**
-     * Inventory report download - the server-side version of Lab 4's CSV export.
+     * Inventory CSV export - server-side version of Lab 4's download feature.
      */
     public function exportCsv(Request $request)
     {
-        $products = $this->filteredProducts($request)->get();
+        $products = $this->filtered($request)->with(['brand', 'category'])->get();
         $filename = 'jimtrack-inventory-'.now()->format('Y-m-d').'.csv';
 
         $headers = [
@@ -192,13 +186,14 @@ class ProductController extends Controller
         $callback = function () use ($products) {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, ['SKU', 'Product Name', 'Category', 'Description', 'Quantity', 'Reorder Level', 'Unit Price', 'Stock Status', 'Supplier', 'Stock Value']);
+            fputcsv($handle, ['SKU', 'Product Name', 'Brand', 'Category', 'Description', 'Quantity', 'Reorder Level', 'Unit Price', 'Status', 'Supplier', 'Stock Value']);
 
             foreach ($products as $product) {
                 fputcsv($handle, [
                     $product->sku,
                     $product->name,
-                    $product->category,
+                    $product->brand?->name ?? '',
+                    $product->category?->name ?? '',
                     $product->description,
                     $product->quantity,
                     $product->reorder_level,

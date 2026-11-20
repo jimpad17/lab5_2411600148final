@@ -1,8 +1,9 @@
 # JimTrack Fitness — Inventory Management System (Laboratory Exercise 5)
 
-Laravel + MySQL implementation of Lab 5 that continues the **JimTrack Fitness** theme and
+Laravel 12 + MySQL implementation of Lab 5 that continues the **JimTrack Fitness** theme and
 PulseTrack color scheme from Laboratory Exercise 4. The old localStorage dashboard is now
-backed by real database records through the MVC pattern.
+backed by real database records through the MVC pattern, with the extra modules requested
+for the expanded system (Brands, Categories, Users, Inventory and Activity Log).
 
 ## Quick start (XAMPP)
 
@@ -37,36 +38,61 @@ backed by real database records through the MVC pattern.
 
 5. Open <http://127.0.0.1:8000>.
 
-## Login (same credentials as Lab 4)
+## Login accounts
 
-| Username | Password  |
-|----------|-----------|
-| `ADMIN`  | `ADMIN123`|
+| Username / Email | Password | Role | Status |
+|------------------|----------|------|--------|
+| `ADMIN` / `admin@jimtrack.local` | `ADMIN123` | Admin | Active |
+| `juan@jimtrack.local` | `STAFF123` | Staff | Active |
+| `maria@jimtrack.local` | `STAFF123` | Staff | Active |
+| `test@jimtrack.local` | `STAFF123` | Staff | Inactive (login blocked) |
 
-`ADMIN` is mapped to the seeded Breeze account `admin@jimtrack.local` in
-`app/Http/Requests/Auth/LoginRequest.php`. Normal email logins also work.
+`ADMIN` is mapped to `admin@jimtrack.local` in `app/Http/Requests/Auth/LoginRequest.php`,
+so the Lab 4 credentials still work. Normal email logins work too.
+
+## Important behaviour: nothing is deleted
+
+Deleting a **product, brand, category or user account** only sets `is_active = false`.
+The row, its stock history and its audit entries remain in MySQL.
+
+- Products show **Unavailable (Inactive)** and can be restored with the restore button.
+- Brands and Categories can be set inactive / restored; their products are kept.
+- Users can be deactivated / restored; deactivated accounts cannot log in.
+- Stock transactions and activity logs are never removed with these actions.
 
 ## What is implemented
 
-| Lab 5 requirement | Where |
-|-------------------|-------|
-| Laravel Breeze authentication, themed to Lab 4 colors | `resources/views/auth/*`, `public/css/jimtrack.css` |
-| Product migration + Eloquent model with business rules | `database/migrations/*create_products_table.php`, `app/Models/Product.php` |
-| Inventory transaction migration + model | `database/migrations/*create_inventory_transactions_table.php`, `app/Models/InventoryTransaction.php` |
-| Resource controller with full CRUD + validation + sanitization | `app/Http/Controllers/ProductController.php` |
-| Dashboard controller with real statistics and charts | `app/Http/Controllers/DashboardController.php`, `resources/views/dashboard.blade.php` |
-| Blade layout, product list / form / show views | `resources/views/layouts/app.blade.php`, `resources/views/products/*` |
-| Routes with auth middleware + resource routes | `routes/web.php` |
-| Seeders (admin user, 19 gym products, stock movements) | `database/seeders/*` |
-| CSV export + inventory report page | `ProductController@exportCsv`, `ReportController`, `resources/views/reports/index.blade.php` |
-| Lab 4 color scheme and UI patterns | `public/css/jimtrack.css` |
-| Filters, search, low-stock badges and CSV download from Lab 4 | `resources/views/products/index.blade.php` |
+| Feature | Where |
+|---------|-------|
+| Breeze authentication themed to Lab 4 colors | `resources/views/auth/*`, `public/css/jimtrack.css` |
+| Products with Brand + Category relations | `database/migrations/*create_products_table.php`, `app/Models/Product.php` |
+| Brands and Categories tables with slug + active status | `app/Models/Brand.php`, `app/Models/Category.php`, seeders |
+| Users with admin/staff roles and active status | `app/Models/User.php`, `app/Http/Middleware/EnsureUserIsAdmin.php` |
+| Activity Log (visits, searches, login/logout, every CRUD change) | `app/Models/ActivityLog.php`, `app/Services/ActivityLogger.php`, `app/Http/Middleware/LogActivity.php`, listeners |
+| Inventory overview + Stock In / Stock Out | `app/Http/Controllers/InventoryController.php` |
+| Resource controllers with CRUD, validation and sanitization | `app/Http/Controllers/*Controller.php` |
+| Dashboard with real statistics and Chart.js charts | `app/Http/Controllers/DashboardController.php`, `resources/views/dashboard.blade.php` |
+| Blade layouts and screens for every module | `resources/views/**` |
+| Seeders: 4 users, 7 brands, 6 categories, 21 products (19 active + 2 inactive), stock movements, sample activity | `database/seeders/*` |
+| CSV exports | `ProductController@exportCsv`, `ReportController@exportCsv` |
+| Lab 4 palette and UI patterns | `public/css/jimtrack.css` |
 
 ## Main routes
 
-- `/dashboard` — statistics and Chart.js visualizations from MySQL
-- `/products` — searchable/filterable inventory table with CRUD actions
-- `/products/create`, `/products/{id}`, `/products/{id}/edit`
-- `/products/export/csv` — filtered inventory export
-- `/reports` and `/reports/export/csv` — category valuation report
+- `/dashboard` — statistics, charts and recent activity
+- `/inventory` — stock levels and quick Stock In / Stock Out
+- `/products` — searchable/filterable product management with deactivate/restore
+- `/brands`, `/categories` — lookup table management with deactivate/restore
+- `/users` — admin-only account management with roles and deactivate/restore
+- `/activity-logs` — filterable audit trail
+- `/reports` — valuation by category and brand, reorder list, CSV download
 - `/profile` — Breeze profile and password settings
+
+## Tests
+
+```bash
+php artisan test
+```
+
+29 tests pass, including new checks for soft deactivation/restore, stock movements,
+activity logging and staff access control.

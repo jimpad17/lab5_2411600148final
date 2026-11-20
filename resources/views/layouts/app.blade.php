@@ -27,9 +27,10 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <span class="navbar-text text-light me-3">
+                    <li class="nav-item me-3">
+                        <span class="navbar-text text-light small">
                             Welcome, <span class="text-warning fw-bold">{{ Auth::user()->name }}</span>
+                            <span class="badge role-badge ms-1">{{ strtoupper(Auth::user()->role) }}</span>
                         </span>
                     </li>
                     <li class="nav-item">
@@ -49,18 +50,40 @@
         <div class="row">
             <!-- Sidebar Navigation -->
             <nav class="col-md-3 col-lg-2 d-md-block sidebar vh-100 p-3">
-                <div class="position-sticky pt-2">
-                    <ul class="nav flex-column gap-2">
+                <div class="position-sticky pt-2 d-flex flex-column" style="min-height: calc(100vh - 90px);">
+                    <small class="text-uppercase text-muted fw-bold px-3 mb-2" style="font-size: .68rem;">Main Menu</small>
+                    <ul class="nav flex-column gap-1">
+                        @php
+                            $navItems = [
+                                ['dashboard', 'Dashboard', 'bi-speedometer2', 'dashboard'],
+                                ['inventory.index', 'Inventory', 'bi-clipboard-data', 'inventory*'],
+                                ['products.index', 'Products', 'bi-box-seam', 'products*'],
+                                ['brands.index', 'Brands', 'bi-award', 'brands*'],
+                                ['categories.index', 'Categories', 'bi-tags', 'categories*'],
+                            ];
+                        @endphp
+                        @foreach ($navItems as [$route, $label, $icon, $pattern])
+                            <li class="nav-item">
+                                <a class="nav-link rounded px-3 py-2 {{ request()->routeIs($pattern) ? 'active' : '' }}"
+                                   href="{{ route($route) }}">
+                                    <i class="bi {{ $icon }} me-2"></i> {{ $label }}
+                                </a>
+                            </li>
+                        @endforeach
+
+                        @if (Auth::user()->isAdmin())
+                            <li class="nav-item">
+                                <a class="nav-link rounded px-3 py-2 {{ request()->routeIs('users*') ? 'active' : '' }}"
+                                   href="{{ route('users.index') }}">
+                                    <i class="bi bi-people me-2"></i> Users
+                                </a>
+                            </li>
+                        @endif
+
                         <li class="nav-item">
-                            <a class="nav-link rounded px-3 py-2 {{ request()->routeIs('dashboard') ? 'active' : '' }}"
-                               href="{{ route('dashboard') }}">
-                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link rounded px-3 py-2 {{ request()->routeIs('products*') ? 'active' : '' }}"
-                               href="{{ route('products.index') }}">
-                                <i class="bi bi-box-seam me-2"></i> Inventory
+                            <a class="nav-link rounded px-3 py-2 {{ request()->routeIs('activity-logs*') ? 'active' : '' }}"
+                               href="{{ route('activity-logs.index') }}">
+                                <i class="bi bi-clock-history me-2"></i> Activity Log
                             </a>
                         </li>
                         <li class="nav-item">
@@ -69,13 +92,19 @@
                                 <i class="bi bi-bar-chart-line me-2"></i> Reports
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link rounded px-3 py-2 {{ request()->routeIs('profile*') ? 'active' : '' }}"
-                               href="{{ route('profile.edit') }}">
-                                <i class="bi bi-person-circle me-2"></i> Profile
-                            </a>
-                        </li>
                     </ul>
+
+                    <div class="mt-auto pt-3">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link rounded px-3 py-2 {{ request()->routeIs('profile*') ? 'active' : '' }}"
+                                   href="{{ route('profile.edit') }}">
+                                    <i class="bi bi-person-circle me-2"></i> Profile
+                                </a>
+                            </li>
+                        </ul>
+                        <small class="text-muted px-3" style="font-size: .65rem;">JimTrack Fitness · Lab 5</small>
+                    </div>
                 </div>
             </nav>
 
@@ -94,6 +123,13 @@
                 @if (session('success'))
                     <div class="alert alert-success alert-dismissible fade show py-2 small fw-bold" role="alert">
                         <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show py-2 small fw-bold" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif

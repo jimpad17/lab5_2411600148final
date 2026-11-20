@@ -11,7 +11,7 @@
         <div class="col-md-3 mb-3">
             <div class="card stat-card shadow-sm text-center py-3">
                 <div class="card-body py-2">
-                    <h6 class="card-title text-uppercase fw-bold mb-2">Total Products</h6>
+                    <h6 class="card-title text-uppercase fw-bold mb-2">Active Products</h6>
                     <h2 class="fw-bold text-primary mb-0">{{ $totalItems }}</h2>
                 </div>
             </div>
@@ -35,7 +35,7 @@
         <div class="col-md-3 mb-3">
             <div class="card stat-card shadow-sm text-center py-3">
                 <div class="card-body py-2">
-                    <h6 class="card-title text-uppercase fw-bold mb-2">Low / Out of Stock</h6>
+                    <h6 class="card-title text-uppercase fw-bold mb-2">Reorder Needed</h6>
                     <h2 class="fw-bold text-danger mb-0">{{ $lowStockProducts->count() }}</h2>
                 </div>
             </div>
@@ -81,6 +81,37 @@
         <div class="col-lg-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white pt-3 border-bottom-0">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-award text-warning me-2"></i> Valuation by Brand</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr><th class="ps-3">Brand</th><th>Products</th><th>Units</th><th class="text-end pe-3">Value</th></tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($brands as $row)
+                                    <tr>
+                                        <td class="ps-3"><strong>{{ $row->brand }}</strong></td>
+                                        <td>{{ $row->items }}</td>
+                                        <td>{{ $row->units }}</td>
+                                        <td class="text-end pe-3 fw-bold">₱{{ number_format($row->value, 2) }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="text-center py-4 text-muted">No brands to report.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white pt-3 border-bottom-0">
                     <h5 class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> Reorder List</h5>
                 </div>
                 <div class="card-body p-0">
@@ -99,6 +130,34 @@
                                     </tr>
                                 @empty
                                     <tr><td colspan="4" class="text-center py-4 text-muted">Nothing needs reordering.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white pt-3 border-bottom-0">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-archive text-secondary me-2"></i> Unavailable Products (Kept)</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr><th class="ps-3">Product</th><th>Brand</th><th>Stock</th></tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($inactiveProducts as $item)
+                                    <tr class="table-inactive">
+                                        <td class="ps-3"><strong>{{ $item->name }}</strong></td>
+                                        <td><small>{{ $item->brand?->name ?? '—' }}</small></td>
+                                        <td>{{ $item->quantity }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="3" class="text-center py-4 text-muted">No inactive products.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

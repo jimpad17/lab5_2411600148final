@@ -9,15 +9,30 @@ class ReportController extends Controller
 {
     public function index()
     {
-        $categories = Product::selectRaw('category, COUNT(*) as items, SUM(quantity) as units, SUM(quantity * unit_price) as value')
-            ->groupBy('category')
-            ->orderBy('category')
+        $categories = Product::active()
+            ->join('categories', 'categories.id', '=', 'products.category_id')
+            ->selectRaw('categories.name as category, COUNT(products.id) as items, SUM(products.quantity) as units, SUM(products.quantity * products.unit_price) as value')
+            ->groupBy('categories.id', 'categories.name')
+            ->orderBy('categories.name')
             ->get();
 
-        $totalValue = (float) $categories->sum('value');
-        $totalItems = (int) $categories->sum('items');
-        $lowStockProducts = Product::whereColumn('quantity', '<=', 'reorder_level')
+        $brands = Product::active()
+            ->join('brands', 'brands.id', '=', 'products.brand_id')
+            ->selectRaw('brands.name as brand, COUNT(products.id) as items, SUM(products.quantity) as units, SUM(products.quantity * products.unit_price) as value')
+            ->groupBy('brands.id', 'brands.name')
+            ->orderBy('brands.name')
+            ->get();
+
+        $totalValue = (float) Product::active()
+            ->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as total')
+            ->value('total');
+        $totalItems = (int) Product::active()->count();
+
+        $lowStockProducts = Product::active()
+            ->whereColumn('quantity', '<=', 'reorder_level')
             ->orderBy('quantity')->get();
+
+        $inactiveProducts = Product::inactive()->with(['brand', 'category'])->orderBy('name')->get();
 
         $transactionCounts = InventoryTransaction::selectRaw('type, COUNT(*) as total')
             ->groupBy('type')
@@ -28,9 +43,11 @@ class ReportController extends Controller
 
         return view('reports.index', compact(
             'categories',
+            'brands',
             'totalValue',
             'totalItems',
             'lowStockProducts',
+            'inactiveProducts',
             'transactionCounts',
             'recentTransactions'
         ));
@@ -38,8 +55,12 @@ class ReportController extends Controller
 
     public function exportCsv()
     {
-        $categories = Product::selectRaw('category, COUNT(*) as items, SUM(quantity) as units, SUM(quantity * unit_price) as value')
-            ->groupBy('category')->orderBy('category')->get();
+        $categories = Product::active()
+            ->join('categories', 'categories.id', '=', 'products.category_id')
+            ->selectRaw('categories.name as category, COUNT(products.id) as items, SUM(products.quantity) as units, SUM(products.quantity * products.unit_price) as value')
+            ->groupBy('categories.id', 'categories.name')
+            ->orderBy('categories.name')
+            ->get();
 
         $filename = 'jimtrack-inventory-report-'.now()->format('Y-m-d').'.csv';
 

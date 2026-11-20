@@ -9,18 +9,53 @@ use Illuminate\Support\Facades\Hash;
 class UserSeeder extends Seeder
 {
     /**
-     * Keep the Lab 4 credentials usable: ADMIN / ADMIN123.
-     * Breeze logs in with the email field, so "ADMIN" is mapped in LoginRequest.
+     * Lab 4 credentials remain usable: ADMIN / ADMIN123.
+     * Breeze logs in with email, so "ADMIN" is mapped in LoginRequest.
      */
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'admin@jimtrack.local'],
+        $accounts = [
             [
+                'email' => 'admin@jimtrack.local',
                 'name' => 'ADMIN',
-                'password' => Hash::make('ADMIN123'),
-                'email_verified_at' => now(),
-            ]
-        );
+                'password' => 'ADMIN123',
+                'role' => 'admin',
+                'is_active' => true,
+            ],
+            [
+                'email' => 'juan@jimtrack.local',
+                'name' => 'Juan Dela Cruz',
+                'password' => 'STAFF123',
+                'role' => 'staff',
+                'is_active' => true,
+            ],
+            [
+                'email' => 'maria@jimtrack.local',
+                'name' => 'Maria Santos',
+                'password' => 'STAFF123',
+                'role' => 'staff',
+                'is_active' => true,
+            ],
+            [
+                'email' => 'test@jimtrack.local',
+                'name' => 'Test User',
+                'password' => 'STAFF123',
+                'role' => 'staff',
+                'is_active' => false,
+            ],
+        ];
+
+        foreach ($accounts as $account) {
+            $password = $account['password'];
+            unset($account['password']);
+
+            User::updateOrCreate(
+                ['email' => $account['email']],
+                array_merge($account, [
+                    'password' => Hash::make($password),
+                    'email_verified_at' => now(),
+                ])
+            );
+        }
     }
 }

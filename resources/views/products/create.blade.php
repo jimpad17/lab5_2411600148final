@@ -11,7 +11,7 @@
         <div class="card-header bg-white pt-3 border-bottom-0 d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-bold"><i class="bi bi-plus-circle text-success me-2"></i> Product Details</h5>
             <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i> Back to Inventory
+                <i class="bi bi-arrow-left me-1"></i> Back to Products
             </a>
         </div>
         <div class="card-body p-4">

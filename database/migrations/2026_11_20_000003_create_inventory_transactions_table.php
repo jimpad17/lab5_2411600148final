@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Tracks stock movements so quantity changes are auditable.
-     */
     public function up(): void
     {
         Schema::create('inventory_transactions', function (Blueprint $table) {

@@ -17,15 +17,26 @@
         @error('description') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
     </div>
 
-    <div class="col-md-4">
-        <label for="category" class="form-label small fw-bold text-muted">Category <span class="text-danger">*</span></label>
-        <select class="form-select" id="category" name="category" required>
-            <option value="">Choose category...</option>
-            @foreach ($categories as $category)
-                <option value="{{ $category }}" {{ old('category', $product->category) === $category ? 'selected' : '' }}>{{ $category }}</option>
+    <div class="col-md-6">
+        <label for="brand_id" class="form-label small fw-bold text-muted">Brand <span class="text-danger">*</span></label>
+        <select class="form-select" id="brand_id" name="brand_id" required>
+            <option value="">Choose brand...</option>
+            @foreach ($brands as $brand)
+                <option value="{{ $brand->id }}" {{ (string) old('brand_id', $product->brand_id) === (string) $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
             @endforeach
         </select>
-        @error('category') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+        @error('brand_id') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+    </div>
+
+    <div class="col-md-6">
+        <label for="category_id" class="form-label small fw-bold text-muted">Category <span class="text-danger">*</span></label>
+        <select class="form-select" id="category_id" name="category_id" required>
+            <option value="">Choose category...</option>
+            @foreach ($categories as $category)
+                <option value="{{ $category->id }}" {{ (string) old('category_id', $product->category_id) === (string) $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+            @endforeach
+        </select>
+        @error('category_id') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
     </div>
 
     <div class="col-md-2">
@@ -46,9 +57,19 @@
         @error('unit_price') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
     </div>
 
-    <div class="col-12">
+    <div class="col-md-4">
         <label for="supplier" class="form-label small fw-bold text-muted">Supplier</label>
         <input type="text" class="form-control" id="supplier" name="supplier" value="{{ old('supplier', $product->supplier) }}" placeholder="Optional supplier name">
         @error('supplier') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+    </div>
+
+    <div class="col-12">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1"
+                   {{ old('is_active', $product->exists ? $product->is_active : true) ? 'checked' : '' }}>
+            <label class="form-check-label small fw-bold text-muted" for="is_active">
+                Available (uncheck to mark the product unavailable without deleting it)
+            </label>
+        </div>
     </div>
 </div>
