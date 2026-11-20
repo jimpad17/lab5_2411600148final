@@ -86,25 +86,8 @@
                                 <i class="bi bi-clock-history me-2"></i> Activity Log
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link rounded px-3 py-2 {{ request()->routeIs('reports*') ? 'active' : '' }}"
-                               href="{{ route('reports.index') }}">
-                                <i class="bi bi-bar-chart-line me-2"></i> Reports
-                            </a>
-                        </li>
                     </ul>
-
-                    <div class="mt-auto pt-3">
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <a class="nav-link rounded px-3 py-2 {{ request()->routeIs('profile*') ? 'active' : '' }}"
-                                   href="{{ route('profile.edit') }}">
-                                    <i class="bi bi-person-circle me-2"></i> Profile
-                                </a>
-                            </li>
-                        </ul>
-                        <small class="text-muted px-3" style="font-size: .65rem;">JimTrack Fitness · Lab 5</small>
-                    </div>
+                </div>
                 </div>
             </nav>
 

@@ -6,8 +6,6 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\LogActivity;
@@ -56,14 +54,6 @@ Route::middleware(['auth', EnsureUserIsActive::class, LogActivity::class])->grou
     // Audit trail
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
 
-    // Reports
-    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('reports/export/csv', [ReportController::class, 'exportCsv'])->name('reports.export');
-
-    // Profile
-    Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__.'/auth.php';

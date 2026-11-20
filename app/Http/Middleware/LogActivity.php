@@ -65,8 +65,6 @@ class LogActivity
             'categories' => 'Categories',
             'users' => 'Users',
             'activity-logs' => 'Activity Log',
-            'reports' => 'Reports',
-            'profile' => 'Profile',
         ];
 
         return $modules[$prefix] ?? null;
@@ -76,10 +74,6 @@ class LogActivity
     {
         if ($module === 'Dashboard') {
             return 'Opened the dashboard.';
-        }
-
-        if ($module === 'Profile') {
-            return 'Opened the profile page.';
         }
 
         return 'Opened the '.$module.' list.';

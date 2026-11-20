@@ -15,11 +15,9 @@
     <div class="card shadow-lg login-card" style="max-width: 400px; width: 100%;">
         <!-- Lab 4 dark charcoal + gold branding -->
         <div class="card-header text-center py-4 bg-dark-navbar text-white">
-            <h2 class="mb-1 fw-bold d-flex align-items-center justify-content-center gap-2">
-                <i class="bi bi-lightning-charge-fill text-warning"></i>
+            <h2 class="mb-0 fw-bold">
                 <span>JimTrack Fitness</span>
             </h2>
-            <p class="mb-0 text-muted-gold small fw-semibold">INVENTORY MANAGEMENT SYSTEM</p>
         </div>
 
         <div class="card-body p-4 bg-white">

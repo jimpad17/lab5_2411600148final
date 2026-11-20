@@ -48,7 +48,9 @@ for the expanded system (Brands, Categories, Users, Inventory and Activity Log).
 | `test@jimtrack.local` | `STAFF123` | Staff | Inactive (login blocked) |
 
 `ADMIN` is mapped to `admin@jimtrack.local` in `app/Http/Requests/Auth/LoginRequest.php`,
-so the Lab 4 credentials still work. Normal email logins work too.
+so the Lab 4 credentials still work. Normal email logins work too. The login screen has
+only username/password, a **Login** button and a **Create account** link (no Remember me,
+no Forgot password, no subtitle or lightning icon).
 
 ## Broken / random URLs
 
@@ -86,7 +88,7 @@ The row, its stock history and its audit entries remain in MySQL.
 | Dashboard with real statistics and Chart.js charts | `app/Http/Controllers/DashboardController.php`, `resources/views/dashboard.blade.php` |
 | Blade layouts and screens for every module | `resources/views/**` |
 | Seeders: 4 users, 7 brands, 6 categories, 21 products (19 active + 2 inactive), stock movements, sample activity | `database/seeders/*` |
-| CSV exports | `ProductController@exportCsv`, `ReportController@exportCsv` |
+| CSV export | `ProductController@exportCsv` |
 | Lab 4 palette and UI patterns | `public/css/jimtrack.css` |
 
 ## Main routes
@@ -97,8 +99,6 @@ The row, its stock history and its audit entries remain in MySQL.
 - `/brands`, `/categories` — lookup table management with deactivate/restore
 - `/users` — admin-only account management with roles and deactivate/restore
 - `/activity-logs` — filterable audit trail
-- `/reports` — valuation by category and brand, reorder list, CSV download
-- `/profile` — Breeze profile and password settings
 
 ## Tests
 
@@ -106,5 +106,5 @@ The row, its stock history and its audit entries remain in MySQL.
 php artisan test
 ```
 
-29 tests pass, including new checks for soft deactivation/restore, stock movements,
-activity logging and staff access control.
+26 tests pass, including checks for soft deactivation/restore, stock movements,
+activity logging, staff access control and broken-URL fallback.
