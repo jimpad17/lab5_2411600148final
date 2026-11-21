@@ -48,7 +48,8 @@ for the expanded system (Brands, Categories, Users, Inventory and Activity Log).
 | `test@jimtrack.local` | `STAFF123` | Staff | Inactive (login blocked) |
 
 `ADMIN` is mapped to `admin@jimtrack.local` in `app/Http/Requests/Auth/LoginRequest.php`,
-so the Lab 4 credentials still work. Normal email logins work too. The login screen has
+so the Lab 4 credentials still work. This seeded admin account is protected and cannot be
+deactivated or deleted. Normal email logins work too. The login screen has
 only username/password, a **Login** button and a **Create account** link (no Remember me,
 no Forgot password, no subtitle or lightning icon). Both the admin and a staff example
 are printed at the bottom of the login card.

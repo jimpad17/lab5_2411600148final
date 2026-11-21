@@ -14,6 +14,11 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * The seeded Lab 4 account must stay active so ADMIN / ADMIN123 always works.
+     */
+    public const PROTECTED_ADMIN_EMAIL = 'admin@jimtrack.local';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -62,6 +67,14 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin' && $this->is_active;
+    }
+
+    /**
+     * This account is intentionally protected from deactivation/deletion.
+     */
+    public function isProtectedAdmin(): bool
+    {
+        return strtolower((string) $this->email) === self::PROTECTED_ADMIN_EMAIL;
     }
 
     public function scopeActive($query)

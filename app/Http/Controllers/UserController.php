@@ -57,6 +57,10 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        if ($user->isProtectedAdmin() && ! $request->boolean('is_active')) {
+            return back()->with('error', 'The default ADMIN account cannot be deactivated.');
+        }
+
         $data = $this->validateData($request, $user);
 
         if (! empty($data['password'])) {
@@ -78,6 +82,10 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        if ($user->isProtectedAdmin()) {
+            return back()->with('error', 'The default ADMIN account cannot be deactivated.');
+        }
+
         if ($user->id === auth()->id()) {
             return back()->with('error', 'You cannot deactivate your own account.');
         }

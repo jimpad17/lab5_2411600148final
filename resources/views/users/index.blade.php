@@ -103,6 +103,9 @@
                                     @if ($user->id === auth()->id())
                                         <span class="badge bg-info text-dark ms-1">You</span>
                                     @endif
+                                    @if ($user->isProtectedAdmin())
+                                        <span class="badge bg-dark ms-1" title="Default admin account cannot be deactivated">Protected</span>
+                                    @endif
                                 </td>
                                 <td><small>{{ $user->email }}</small></td>
                                 <td><span class="badge {{ $user->role === 'admin' ? 'bg-warning text-dark' : 'bg-secondary' }}">{{ ucfirst($user->role) }}</span></td>
@@ -117,7 +120,7 @@
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     @if ($user->is_active)
-                                        @if ($user->id !== auth()->id())
+                                        @if ($user->id !== auth()->id() && ! $user->isProtectedAdmin())
                                             <form method="POST" action="{{ route('users.destroy', $user) }}" class="d-inline"
                                                   onsubmit="return confirm('Deactivate \'{{ addslashes($user->name) }}\'? No records will be deleted.');">
                                                 @csrf

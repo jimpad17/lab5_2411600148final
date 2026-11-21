@@ -134,6 +134,33 @@ class InventoryTest extends TestCase
         }
     }
 
+    public function test_default_admin_account_cannot_be_deactivated(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $protected = User::factory()->create([
+            'role' => 'admin',
+            'name' => 'ADMIN',
+            'email' => User::PROTECTED_ADMIN_EMAIL,
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('users.destroy', $protected))
+            ->assertRedirect()
+            ->assertSessionHas('error', 'The default ADMIN account cannot be deactivated.');
+
+        $this->actingAs($admin)
+            ->put(route('users.update', $protected), [
+                'name' => 'ADMIN',
+                'email' => User::PROTECTED_ADMIN_EMAIL,
+                'role' => 'admin',
+                'is_active' => false,
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('error', 'The default ADMIN account cannot be deactivated.');
+
+        $this->assertTrue($protected->fresh()->is_active);
+    }
+
     public function test_random_or_broken_url_returns_to_the_last_real_page(): void
     {
         $user = User::factory()->create();
