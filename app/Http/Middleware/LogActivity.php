@@ -16,6 +16,26 @@ class LogActivity
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->isMethod('get') && $request->has('search')) {
+            $raw = $request->query('search', '');
+            $search = is_string($raw) ? trim($raw) : '';
+
+            if ($search === '' || ! is_string($raw)) {
+                $request->merge(['search' => null]);
+            }
+
+            if (is_string($raw) && $search !== '' && ! $this->isValidSearch($search)) {
+                $query = $request->except('search');
+
+                return redirect()->to($request->url().($query ? '?'.http_build_query($query) : ''))
+                    ->with('error', 'Invalid search term. Please use letters, numbers, or common symbols only.');
+            }
+
+            if (is_string($raw) && $search !== '' && $this->isValidSearch($search)) {
+                $request->merge(['search' => $search]);
+            }
+        }
+
         $response = $next($request);
 
         // Remember the last real page so the fallback route can bring the user
@@ -50,6 +70,18 @@ class LogActivity
         }
 
         return $response;
+    }
+
+    /**
+     * Reject random/garbled search input (e.g. symbol-only keyboard mashes).
+     */
+    private function isValidSearch(string $search): bool
+    {
+        if (mb_strlen($search) > 100) {
+            return false;
+        }
+
+        return preg_match('/[\pL\pN]/u', $search) === 1;
     }
 
     private function moduleFor(Request $request): ?string

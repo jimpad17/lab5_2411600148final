@@ -49,7 +49,7 @@ Route::middleware(['auth', EnsureUserIsActive::class, LogActivity::class])->grou
         Route::get('products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
         Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
         Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-        Route::get('products/{product}/restore', [ProductController::class, 'restore'])->name('products.restore');
+        Route::post('products/{product}/restore', [ProductController::class, 'restore'])->name('products.restore');
 
         // Brands
         Route::get('brands/create', [BrandController::class, 'create'])->name('brands.create');
@@ -57,7 +57,7 @@ Route::middleware(['auth', EnsureUserIsActive::class, LogActivity::class])->grou
         Route::get('brands/{brand}/edit', [BrandController::class, 'edit'])->name('brands.edit');
         Route::put('brands/{brand}', [BrandController::class, 'update'])->name('brands.update');
         Route::delete('brands/{brand}', [BrandController::class, 'destroy'])->name('brands.destroy');
-        Route::get('brands/{brand}/restore', [BrandController::class, 'restore'])->name('brands.restore');
+        Route::post('brands/{brand}/restore', [BrandController::class, 'restore'])->name('brands.restore');
 
         // Categories
         Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');
@@ -65,13 +65,13 @@ Route::middleware(['auth', EnsureUserIsActive::class, LogActivity::class])->grou
         Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
         Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
         Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
-        Route::get('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+        Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
 
         // Users
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/create', [UserController::class, 'create'])->name('users.create');
         Route::post('users', [UserController::class, 'store'])->name('users.store');
-        Route::get('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
+        Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
         Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');

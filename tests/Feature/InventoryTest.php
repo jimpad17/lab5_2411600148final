@@ -44,7 +44,7 @@ class InventoryTest extends TestCase
         $this->assertFalse($product->fresh()->is_active);
 
         $this->actingAs($admin)
-            ->get(route('products.restore', $product))
+            ->post(route('products.restore', $product))
             ->assertRedirect(route('products.index'));
 
         $this->assertTrue($product->fresh()->is_active);
